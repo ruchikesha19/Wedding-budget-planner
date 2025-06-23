@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="minimal-hero">
+  <div class="minimal-hero-bg">
+    <img src="{{ url_for('static', filename='images/R.jpeg') }}" alt="Wedding Home" class="minimal-hero-img-bg">
+    <svg class="minimal-wave" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,80 Q400,0 800,80 T1440,80" stroke="#D6C7A1" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="minimal-hero-content">
+      <div class="minimal-hero-floral">
+        <svg width="80" height="40" viewBox="0 0 80 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,30 Q40,10 70,30" stroke="#D6C7A1" stroke-width="2" fill="none"/>
+          <circle cx="15" cy="28" r="2" fill="#D6C7A1"/>
+          <circle cx="65" cy="28" r="2" fill="#D6C7A1"/>
+        </svg>
+      </div>
+      <h2 class="minimal-hero-names">Wedding Budget Planner</h2>
+      <h1 class="minimal-hero-title">Plan Your Dream Wedding With Ease</h1>
+      <p class="minimal-hero-desc">__________________________________________________________________________________ Organize every detail, manage your budget, and make your special day unforgettable. Start your wedding planning journey with our simple, elegant, and powerful tools.</p>
+      <a class="minimal-hero-btn" href="{{ url_for('dashboard') }}">Start Planning</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

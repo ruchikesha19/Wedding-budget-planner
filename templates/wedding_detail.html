@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="minimal-wedding-detail">
+  <img src="{{ url_for('static', filename='images/detail.webp') }}" alt="Wedding Detail Banner" class="minimal-detail-img">
+  <h2 class="minimal-wedding-title">{{ wedding.title }}</h2>
+  <h3 class="minimal-wedding-date">{{ wedding.wedding_date.strftime('%d-%m-%Y') }}</h3>
+  <div class="minimal-wedding-budget-card">
+    <p class="minimal-wedding-location"><strong>📍 {{ wedding.location }}</strong></p>
+    <p>Total Budget: <strong>₹{{ '%.2f'|format(wedding.total_budget) }}</strong></p>
+    <p>Remaining Budget: <strong>₹{{ '%.2f' % (wedding.total_budget - wedding.total_spent) }}</strong></p>
+    <p>Total Allocated: <strong>₹{{ '%.2f'|format(wedding.total_allocated) }}</strong></p>
+    <p>Total Spent: <strong>₹{{ '%.2f'|format(wedding.total_spent) }}</strong></p>
+    <h4 id="overmsg" class="minimal-budget-status {{ 'green-text' if (wedding.total_budget - wedding.total_spent) >= 0 else 'red-text' }}">
+      {{ '✅ You are within your budget.' if (wedding.total_budget - wedding.total_spent) >= 0 else '⚠️ You have overspent your budget by ₹' + ('%.2f' % (wedding.total_spent - wedding.total_budget)) }}
+    </h4>
+    <a class="minimal-hero-btn" href="{{ url_for('add_category', wedding_id=wedding.id) }}">➕ Add Category</a>
+  </div>
+  <hr>
+  {% if wedding.categories %}
+    {% for c in wedding.categories %}
+      <section class="minimal-category">
+        <div class="minimal-category-header">
+          <h3>{{ c.name }} <small>(₹{{ '%.2f'|format(c.default_amount) }} allocated)</small></h3>
+          <div>
+            <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('edit_category', category_id=c.id) }}">✏️ Edit</a>
+            <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('delete_category', category_id=c.id) }}" onclick="return confirm('Are you sure you want to delete this category and all its items?')">🗑️ Delete</a>
+          </div>
+        </div>
+        <div style="margin-top: 1em;">
+          <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('add_item', category_id=c.id) }}">Add Item</a>
+        </div>
+        {% if c.items %}
+          <table class="minimal-table">
+            <thead><tr><th>Item</th><th>Allocated</th><th>Spent</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for item in c.items %}
+                <tr>
+                  <td>{{ item.name }}</td>
+                  <td>₹{{ '%.2f'|format(item.allocated) }}</td>
+                  <td>₹{{ '%.2f'|format(item.actual) }}</td>
+                  <td>
+                    <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('add_payment', item_id=item.id) }}">💵 Add Payment</a>
+                    <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('edit_item', item_id=item.id) }}">✏️ Edit</a>
+                    <a class="minimal-hero-btn minimal-btn-tiny" href="{{ url_for('delete_item', item_id=item.id) }}" onclick="return confirm('Are you sure you want to delete this item?')">🗑️ Delete</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="minimal-empty">No items yet.</p>
+        {% endif %}
+      </section>
+    {% endfor %}
+  {% else %}
+    <p class="minimal-empty">No categories yet.</p>
+  {% endif %}
+  <a class="minimal-hero-btn" href="{{ url_for('dashboard') }}">⬅ Back to Dashboard</a>
+</div>
+{% endblock %}
+ 

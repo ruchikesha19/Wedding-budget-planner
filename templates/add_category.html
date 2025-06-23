@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Add Category to {{ wedding.title }}</h2>
+<form method="post" class="card">
+    <label>Name<input type="text" name="name" required></label>
+    <label>Allocated Amount<input type="number" step="0.01" name="default_amount" required></label>
+    <button type="submit">Add</button>
+</form>
+{% endblock %}

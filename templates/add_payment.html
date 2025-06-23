@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Add Payment to {{ item.name }}</h2>
+<form method="post" class="card">
+    <label>Amount<input type="number" step="0.01" name="amount" required></label>
+    <label>Notes<input type="text" name="notes"></label>
+    <button type="submit">Add Payment</button>
+</form>
+{% endblock %}

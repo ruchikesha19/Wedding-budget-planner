@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>New Wedding</h2>
+<form method="post" class="card">
+    <label>Title<input type="text" name="title" required></label>
+    <label>Date<input type="date" name="wedding_date" required></label>
+    <label>Location<input type="text" name="location"></label>
+    <label>Total Budget<input type="number" step="0.01" name="total_budget" required></label>
+    <button type="submit">Create</button>
+</form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="minimal-dashboard">
+  <img src="{{ url_for('static', filename='images/dashboard.jpeg') }}" alt="Dashboard Banner" class="minimal-dashboard-img">
+  <h2 class="minimal-dashboard-greeting">Hello, {{ user.name }} 🎉</h2>
+  <a class="minimal-hero-btn" href="{{ url_for('new_wedding') }}">➕ New Wedding</a>
+  {% if weddings %}
+  <table class="minimal-table">
+    <thead><tr><th>Title</th><th>Date</th><th>Location</th><th>Budget</th><th>Allocated</th><th>Spent</th></tr></thead>
+    <tbody>
+      {% for w in weddings %}
+      <tr>
+        <td><a href="{{ url_for('wedding_detail', wedding_id=w.id) }}">{{ w.title }}</a></td>
+        <td>{{ w.wedding_date.strftime('%Y-%m-%d') }}</td>
+        <td>{{ w.location }}</td>
+        <td>₹{{ '%.2f'|format(w.total_budget) }}</td>
+        <td>₹{{ '%.2f'|format(w.total_allocated) }}</td>
+        <td>₹{{ '%.2f'|format(w.total_spent) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="minimal-empty">No weddings yet.</p>
+  {% endif %}
+</div>
+{% endblock %}
