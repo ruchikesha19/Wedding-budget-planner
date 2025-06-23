@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'change-me')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:thulasi@localhost/weddingplanner'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@localhost/weddingplanner'
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://username:password@localhost/weddingplanner')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
