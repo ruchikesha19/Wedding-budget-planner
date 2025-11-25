@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'change-me')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:thulasi@localhost/weddingplanner'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@localhost/weddingbudget'
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://username:password@localhost/weddingplanner')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -33,13 +33,16 @@ class User(db.Model):
 
 class Wedding(db.Model):
     __tablename__ = 'weddings'
-    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    title = db.Column(db.String(120), nullable=False)
     wedding_date = db.Column(db.Date, nullable=False)
     location = db.Column(db.String(255))
     total_budget = db.Column(db.Float, nullable=False, default=0.0)
-    categories = db.relationship('Category', backref='wedding', lazy=True, cascade="all, delete")
+    categories = db.relationship('Category', backref='wedding_ref', lazy=True, cascade="all, delete")
+    
+    __table_args__ = (
+        db.UniqueConstraint('title', 'user_id', name='_user_wedding_uc'),
+    )
 
     @property
     def total_allocated(self):
@@ -52,7 +55,7 @@ class Wedding(db.Model):
 class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
-    wedding_id = db.Column(db.Integer, db.ForeignKey('weddings.id'), nullable=False)
+    wedding_title = db.Column(db.String(120), db.ForeignKey('weddings.title'), nullable=False)
     name = db.Column(db.String(120), nullable=False)
     default_amount = db.Column(db.Float, default=0.0)
     items = db.relationship('Item', backref='category', lazy=True, cascade="all, delete")
@@ -151,41 +154,49 @@ def new_wedding():
         wedding_date = request.form['wedding_date']
         location = request.form['location']
         total_budget = request.form['total_budget']
-        wedding = Wedding(user_id=user.id, title=title, wedding_date=wedding_date,
-                          location=location, total_budget=total_budget)
-        db.session.add(wedding)
-        db.session.commit()
-        flash('Wedding created!', 'success')
-        return redirect(url_for('dashboard'))
+        try:
+            wedding = Wedding(user_id=user.id, title=title, wedding_date=wedding_date,
+                            location=location, total_budget=total_budget)
+            db.session.add(wedding)
+            db.session.commit()
+            flash('Wedding created!', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            if 'Duplicate entry' in str(e) and 'title' in str(e):
+                flash('A wedding with this title already exists. Please choose a different title.', 'danger')
+            else:
+                flash('An error occurred while creating the wedding.', 'danger')
+            return render_template('new_wedding.html')
     return render_template('new_wedding.html')
 
-@app.route('/wedding/<int:wedding_id>')
-def wedding_detail(wedding_id):
+@app.route('/wedding/<wedding_title>')
+def wedding_detail(wedding_title):
     user = current_user()
     if not user:
         return redirect(url_for('login'))
-    wedding = Wedding.query.get_or_404(wedding_id)
+    wedding = Wedding.query.get_or_404(wedding_title)
     if wedding.user_id != user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('dashboard'))
     return render_template('wedding_detail.html', wedding=wedding)
 
 # --- Category ---
-@app.route('/wedding/<int:wedding_id>/add_category', methods=['GET', 'POST'])
-def add_category(wedding_id):
+@app.route('/wedding/<wedding_title>/add_category', methods=['GET', 'POST'])
+def add_category(wedding_title):
     user = current_user()
-    wedding = Wedding.query.get_or_404(wedding_id)
+    wedding = Wedding.query.get_or_404(wedding_title)
     if wedding.user_id != user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
         name = request.form['name']
         default_amount = request.form['default_amount']
-        cat = Category(wedding_id=wedding.id, name=name, default_amount=default_amount)
+        cat = Category(wedding_title=wedding.title, name=name, default_amount=default_amount)
         db.session.add(cat)
         db.session.commit()
         flash('Category added!', 'success')
-        return redirect(url_for('wedding_detail', wedding_id=wedding.id))
+        return redirect(url_for('wedding_detail', wedding_title=wedding.title))
     return render_template('add_category.html', wedding=wedding)
 
 # --- Item ---
@@ -193,7 +204,7 @@ def add_category(wedding_id):
 def add_item(category_id):
     user = current_user()
     category = Category.query.get_or_404(category_id)
-    wedding = category.wedding
+    wedding = category.wedding_ref
     if wedding.user_id != user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('dashboard'))
@@ -213,7 +224,7 @@ def add_payment(item_id):
     user = current_user()
     item = Item.query.get_or_404(item_id)
     category = item.category
-    wedding = category.wedding
+    wedding = category.wedding_ref
     if wedding.user_id != user.id:
         flash('Not authorized', 'danger')
         return redirect(url_for('dashboard'))
